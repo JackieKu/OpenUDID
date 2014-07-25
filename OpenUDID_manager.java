@@ -118,10 +118,9 @@ public class OpenUDID_manager implements ServiceConnection{
 			if (LOG) Log.d(TAG, "OpenUDID: " + OpenUDID);
 
 			storeOpenUDID();//Store it locally
-			mInitialized = true;
 		}
 	}
-	
+
 	private void getMostFrequentOpenUDID() {
 		if (!mReceivedOpenUDIDs.isEmpty()) {
 			int max = Integer.MIN_VALUE;
@@ -133,33 +132,35 @@ public class OpenUDID_manager implements ServiceConnection{
 			}
 		}
 	}
-	
-	
-	private static String OpenUDID = null;
-	private static boolean mInitialized = false; 
+
+	private static String OpenUDID;
+	private static final Object sLock = new Object();
 
 	/**
 	 * The Method to call to get OpenUDID
 	 * @return the OpenUDID
 	 */
-	public static String getOpenUDID() {
-		if (!mInitialized) Log.e("OpenUDID", "Initialisation isn't done");
+	public static String getOpenUDID(Context context) {
+		if (OpenUDID == null) {
+			synchronized (sLock) {
+				if (context == null)
+					throw new NullPointerException("context must not be null.");
+				init(context);
+				if (OpenUDID == null)
+					throw new AssertionError("Failed to initialize OpenUDID service.");
+			}
+		}
 		return OpenUDID;
 	}
-	
-	/**
-	 * The Method to call to get OpenUDID
-	 * @return the OpenUDID
-	 */
-	public static boolean isInitialized() {
-		return mInitialized;
-	}
-	
+
 	/**
 	 * The Method the call at the init of your app
 	 * @param context	you current context
 	 */
-	public static void sync(Context context) {
+	private static void init(Context context) {
+		if (OpenUDID != null)
+			return;
+
 		//Initialise the Manager
 		OpenUDID_manager manager = new OpenUDID_manager(context);
 		
@@ -177,7 +178,6 @@ public class OpenUDID_manager implements ServiceConnection{
 		
 		} else {//Got it, you can now call getOpenUDID()
 			if (LOG) Log.d(TAG, "OpenUDID: " + OpenUDID);
-			mInitialized = true;
 		}
 	}
 }
