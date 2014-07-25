@@ -2,12 +2,10 @@ package org.OpenUDID;
 
 import java.math.BigInteger;
 import java.security.SecureRandom;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
-import java.util.TreeMap;
 
 import android.content.ComponentName;
 import android.content.Context;
@@ -125,11 +123,14 @@ public class OpenUDID_manager implements ServiceConnection{
 	}
 	
 	private void getMostFrequentOpenUDID() {
-		if (mReceivedOpenUDIDs.isEmpty() == false) {
-			final TreeMap<String,Integer> sorted_OpenUDIDS = new TreeMap(new ValueComparator());
-			sorted_OpenUDIDS.putAll(mReceivedOpenUDIDs);
-        
-			OpenUDID = sorted_OpenUDIDS.firstKey();
+		if (!mReceivedOpenUDIDs.isEmpty()) {
+			int max = Integer.MIN_VALUE;
+			for (Map.Entry<String, Integer> entry : mReceivedOpenUDIDs.entrySet()) {
+				if (max < entry.getValue()) {
+					max = entry.getValue();
+					OpenUDID = entry.getKey();
+				}
+			}
 		}
 	}
 	
@@ -178,24 +179,6 @@ public class OpenUDID_manager implements ServiceConnection{
 			if (LOG) Log.d(TAG, "OpenUDID: " + OpenUDID);
 			mInitialized = true;
 		}
-	}
-	
-	
-	
-	/*
-	 * Used to sort the OpenUDIDs collected by occurrence
-	 */
-	private class ValueComparator implements Comparator {
-		public int compare(Object a, Object b) {
-
-			if(mReceivedOpenUDIDs.get(a) < mReceivedOpenUDIDs.get(b)) {
-				return 1;
-		    } else if(mReceivedOpenUDIDs.get(a) == mReceivedOpenUDIDs.get(b)) {
-		    	return 0;
-		    } else {
-		    	return -1;
-		    }
-		 }
 	}
 }
 
